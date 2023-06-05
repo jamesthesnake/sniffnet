@@ -28,6 +28,7 @@ use crate::report::types::report_sort_type::ReportSortType;
 use crate::secondary_threads::parse_packets::parse_packets;
 use crate::translations::types::language::Language;
 use crate::utils::formatted_strings::get_report_path;
+use crate::utils::types::web_page::WebPage;
 use crate::{ConfigDevice, ConfigSettings, InfoTraffic, RunTimeData, StyleType, TrafficChart};
 
 /// Struct on which the gui is based
@@ -133,7 +134,7 @@ impl Sniffer {
                 self.report_sort_type = what_to_display;
             }
             Message::OpenReport => self.open_report_file(),
-            Message::OpenGithub(main_page) => Self::open_github(main_page),
+            Message::OpenWebPage(web_page) => Self::open_web(&web_page),
             Message::Start => self.start(),
             Message::Reset => return self.reset(),
             Message::Style(style) => {
@@ -288,12 +289,8 @@ impl Sniffer {
         }
     }
 
-    fn open_github(main_page: bool) {
-        let url = if main_page {
-            "https://github.com/GyulyVGC/sniffnet"
-        } else {
-            "https://github.com/GyulyVGC/sniffnet/releases/latest"
-        };
+    fn open_web(web_page: &WebPage) {
+        let url = web_page.get_url();
         #[cfg(target_os = "windows")]
         std::process::Command::new("explorer")
             .arg(url)
@@ -508,6 +505,7 @@ mod tests {
     use std::collections::{HashSet, VecDeque};
     use std::sync::{Arc, Mutex};
 
+    use crate::countries::types::country::Country;
     use crate::gui::components::types::my_modal::MyModal;
     use crate::gui::pages::types::settings_page::SettingsPage;
     use crate::gui::styles::style_constants::get_color_mix_chart;
@@ -774,7 +772,7 @@ mod tests {
             Host {
                 domain: "1.1".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             false,
         ));
@@ -787,7 +785,7 @@ mod tests {
             Host {
                 domain: "2.2".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             false,
         ));
@@ -800,7 +798,7 @@ mod tests {
             Host {
                 domain: "2.2".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             true,
         ));
@@ -809,7 +807,7 @@ mod tests {
             HashSet::from([Host {
                 domain: "2.2".to_string(),
                 asn: Default::default(),
-                country: "US".to_string()
+                country: Country::US,
             }])
         );
         // remove 1
@@ -817,7 +815,7 @@ mod tests {
             Host {
                 domain: "1.1".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             false,
         ));
@@ -826,7 +824,7 @@ mod tests {
             HashSet::from([Host {
                 domain: "2.2".to_string(),
                 asn: Default::default(),
-                country: "US".to_string()
+                country: Country::US,
             }])
         );
         // add 2
@@ -834,7 +832,7 @@ mod tests {
             Host {
                 domain: "2.2".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             true,
         ));
@@ -843,7 +841,7 @@ mod tests {
             HashSet::from([Host {
                 domain: "2.2".to_string(),
                 asn: Default::default(),
-                country: "US".to_string()
+                country: Country::US,
             }])
         );
         // add 1
@@ -851,7 +849,7 @@ mod tests {
             Host {
                 domain: "1.1".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             true,
         ));
@@ -861,12 +859,12 @@ mod tests {
                 Host {
                     domain: "1.1".to_string(),
                     asn: Default::default(),
-                    country: "US".to_string()
+                    country: Country::US,
                 },
                 Host {
                     domain: "2.2".to_string(),
                     asn: Default::default(),
-                    country: "US".to_string()
+                    country: Country::US,
                 }
             ])
         );
@@ -875,7 +873,7 @@ mod tests {
             Host {
                 domain: "3.3".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             true,
         ));
@@ -885,17 +883,17 @@ mod tests {
                 Host {
                     domain: "1.1".to_string(),
                     asn: Default::default(),
-                    country: "US".to_string()
+                    country: Country::US,
                 },
                 Host {
                     domain: "2.2".to_string(),
                     asn: Default::default(),
-                    country: "US".to_string()
+                    country: Country::US,
                 },
                 Host {
                     domain: "3.3".to_string(),
                     asn: Default::default(),
-                    country: "US".to_string()
+                    country: Country::US,
                 }
             ])
         );
@@ -904,7 +902,7 @@ mod tests {
             Host {
                 domain: "2.2".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             false,
         ));
@@ -914,12 +912,12 @@ mod tests {
                 Host {
                     domain: "1.1".to_string(),
                     asn: Default::default(),
-                    country: "US".to_string()
+                    country: Country::US,
                 },
                 Host {
                     domain: "3.3".to_string(),
                     asn: Default::default(),
-                    country: "US".to_string()
+                    country: Country::US,
                 }
             ])
         );
@@ -928,7 +926,7 @@ mod tests {
             Host {
                 domain: "3.3".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             false,
         ));
@@ -937,7 +935,7 @@ mod tests {
             HashSet::from([Host {
                 domain: "1.1".to_string(),
                 asn: Default::default(),
-                country: "US".to_string()
+                country: Country::US,
             }])
         );
         // remove 1
@@ -945,7 +943,7 @@ mod tests {
             Host {
                 domain: "1.1".to_string(),
                 asn: Default::default(),
-                country: "US".to_string(),
+                country: Country::US,
             },
             false,
         ));

@@ -9,8 +9,9 @@ use iced::Length::{Fill, FillPortion};
 use iced::{Alignment, Font, Length};
 use iced_lazy::lazy;
 use iced_native::widget::{horizontal_space, Rule};
-use thousands::Separable;
 
+use crate::countries::country_utils::get_flag_tooltip;
+use crate::countries::flags_pictures::FLAGS_WIDTH_BIG;
 use crate::gui::components::radio::chart_radios;
 use crate::gui::components::tab::get_pages_tabs;
 use crate::gui::styles::style_constants::{get_font, FONT_SIZE_TITLE, ICONS};
@@ -33,9 +34,8 @@ use crate::translations::translations_2::{
     data_representation_translation, dropped_packets_translation, host_translation,
     only_top_30_hosts_translation,
 };
-use crate::utils::countries::{get_flag_tooltip, FLAGS_WIDTH_BIG};
 use crate::utils::formatted_strings::{
-    get_active_filters_string, get_formatted_bytes_string, get_percentage_string,
+    get_active_filters_string, get_formatted_bytes_string_with_b, get_percentage_string,
 };
 use crate::{AppProtocol, ChartType, Language, RunningPage};
 
@@ -235,7 +235,7 @@ fn body_no_observed(
 ) -> Column<'static, Message> {
     let tot_packets_text = some_observed_translation(
         language,
-        &observed.separate_with_spaces(),
+        observed,
         &get_active_filters_string(filters, language),
     )
     .horizontal_alignment(Horizontal::Center)
@@ -386,11 +386,7 @@ fn col_host(width: f32, sniffer: &Sniffer) -> Column<'static, Message> {
                         Text::new(if chart_type.eq(&ChartType::Packets) {
                             data_info_host.data_info.tot_packets().to_string()
                         } else {
-                            let mut bytes_string =
-                                get_formatted_bytes_string(data_info_host.data_info.tot_bytes())
-                                    .replace("  ", " ");
-                            bytes_string.push('B');
-                            bytes_string
+                            get_formatted_bytes_string_with_b(data_info_host.data_info.tot_bytes())
                         })
                         .font(font),
                     ),
@@ -424,7 +420,7 @@ fn col_host(width: f32, sniffer: &Sniffer) -> Column<'static, Message> {
             .spacing(5)
             .push(star_button)
             .push(get_flag_tooltip(
-                &host.country,
+                host.country,
                 FLAGS_WIDTH_BIG,
                 data_info_host.is_local,
                 data_info_host.traffic_type,
@@ -438,7 +434,7 @@ fn col_host(width: f32, sniffer: &Sniffer) -> Column<'static, Message> {
                 .padding([5, 15, 5, 10])
                 .on_press(Message::Search(SearchParameters {
                     domain: host.domain.clone(),
-                    country: host.country.clone(),
+                    country: host.country.to_string().clone(),
                     as_name: host.asn.name.clone(),
                     ..SearchParameters::default()
                 }))
@@ -517,11 +513,7 @@ fn col_app(width: f32, sniffer: &Sniffer) -> Column<'static, Message> {
                         Text::new(if chart_type.eq(&ChartType::Packets) {
                             data_info.tot_packets().to_string()
                         } else {
-                            let mut bytes_string =
-                                get_formatted_bytes_string(data_info.tot_bytes())
-                                    .replace("  ", " ");
-                            bytes_string.push('B');
-                            bytes_string
+                            get_formatted_bytes_string_with_b(data_info.tot_bytes())
                         })
                         .font(font),
                     ),
@@ -628,7 +620,7 @@ fn lazy_col_info(
         format!(
             "{}:\n   {} {}",
             dropped_packets_translation(sniffer.language),
-            &dropped.separate_with_spaces(),
+            dropped,
             of_total_translation(
                 sniffer.language,
                 &get_percentage_string(total, u128::from(dropped))
@@ -648,13 +640,13 @@ fn lazy_col_info(
                 Text::new(format!(
                     "{}:\n   {}",
                     filtered_bytes_translation(sniffer.language),
-                    &get_formatted_bytes_string(filtered_bytes)
+                    &get_formatted_bytes_string_with_b(filtered_bytes)
                 ))
             } else {
                 Text::new(format!(
                     "{}:\n   {} {}",
                     filtered_bytes_translation(sniffer.language),
-                    &get_formatted_bytes_string(filtered_bytes),
+                    &get_formatted_bytes_string_with_b(filtered_bytes),
                     of_total_translation(
                         sniffer.language,
                         &get_percentage_string(sniffer.runtime_data.all_bytes, filtered_bytes)
@@ -667,7 +659,7 @@ fn lazy_col_info(
             Text::new(format!(
                 "{}:\n   {} {}",
                 filtered_packets_translation(sniffer.language),
-                &filtered.separate_with_spaces(),
+                filtered,
                 of_total_translation(sniffer.language, &get_percentage_string(total, filtered))
             ))
             .font(font),

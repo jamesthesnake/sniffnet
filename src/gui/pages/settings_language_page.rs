@@ -1,4 +1,4 @@
-use iced::widget::{Column, Container, Row, Text};
+use iced::widget::{Column, Container, Text};
 use iced::Length::Fixed;
 use iced::{Alignment, Length};
 use iced_native::widget::vertical_space;
@@ -18,17 +18,20 @@ pub fn settings_language_page(sniffer: &Sniffer) -> Container<Message> {
     let font = get_font(sniffer.style);
 
     let language_active = sniffer.language;
-    let col_language_radio_1 =
-        language_radios(language_active, &Language::COL1, font, sniffer.style);
-    let col_language_radio_2 =
-        language_radios(language_active, &Language::COL2, font, sniffer.style);
-    let col_language_radio_3 =
-        language_radios(language_active, &Language::COL3, font, sniffer.style);
-    let row_language_radio = Row::new()
-        .spacing(50)
-        .push(col_language_radio_1)
-        .push(col_language_radio_2)
-        .push(col_language_radio_3);
+    let row_language_radio_1 =
+        language_radios(language_active, &Language::ROW1, font, sniffer.style);
+    let row_language_radio_2 =
+        language_radios(language_active, &Language::ROW2, font, sniffer.style);
+    let row_language_radio_3 =
+        language_radios(language_active, &Language::ROW3, font, sniffer.style);
+    let row_language_radio_4 =
+        language_radios(language_active, &Language::ROW4, font, sniffer.style);
+    let col_language_radio_all = Column::new()
+        .spacing(10)
+        .push(row_language_radio_1)
+        .push(row_language_radio_2)
+        .push(row_language_radio_3)
+        .push(row_language_radio_4);
 
     let mut content = Column::new()
         .align_items(Alignment::Center)
@@ -56,24 +59,20 @@ pub fn settings_language_page(sniffer: &Sniffer) -> Container<Message> {
                 .font(font)
                 .size(FONT_SIZE_SUBTITLE),
         )
-        .push(vertical_space(Fixed(20.0)));
+        .push(vertical_space(Fixed(40.0)))
+        .push(col_language_radio_all);
 
-    if ![Language::EN, Language::IT].contains(&sniffer.language) {
-        content = content
-            .push(
-                Container::new(
-                    Text::new("The selected language is not fully updated to version 1.2")
-                        .font(font),
-                )
-                .padding(10.0)
-                .style(<StyleTuple as Into<iced::theme::Container>>::into(
-                    StyleTuple(sniffer.style, ElementType::Badge),
-                )),
+    if [Language::EL, Language::FR, Language::PT].contains(&sniffer.language) {
+        content = content.push(vertical_space(Fixed(40.0))).push(
+            Container::new(
+                Text::new("The selected language is not fully updated to version 1.2").font(font),
             )
-            .push(vertical_space(Fixed(20.0)));
+            .padding(10.0)
+            .style(<StyleTuple as Into<iced::theme::Container>>::into(
+                StyleTuple(sniffer.style, ElementType::Badge),
+            )),
+        );
     }
-
-    content = content.push(row_language_radio);
 
     Container::new(content)
         .height(Fixed(400.0))
