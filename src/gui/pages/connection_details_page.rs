@@ -8,6 +8,8 @@ use iced_lazy::lazy;
 use iced_native::widget::tooltip::Position;
 use iced_native::widget::{button, horizontal_space, vertical_space, Rule};
 
+use crate::countries::country_utils::{get_computer_tooltip, get_flag_tooltip};
+use crate::countries::flags_pictures::FLAGS_WIDTH_BIG;
 use crate::gui::styles::style_constants::{get_font, get_font_headers, FONT_SIZE_TITLE, ICONS};
 use crate::gui::styles::types::element_type::ElementType;
 use crate::gui::styles::types::style_tuple::StyleTuple;
@@ -17,16 +19,15 @@ use crate::networking::types::address_port_pair::AddressPortPair;
 use crate::networking::types::info_address_port_pair::InfoAddressPortPair;
 use crate::networking::types::traffic_direction::TrafficDirection;
 use crate::translations::translations::{
-    application_protocol_translation, bytes_translation, hide_translation, incoming_translation,
-    outgoing_translation, packets_translation, transport_protocol_translation,
+    application_protocol_translation, hide_translation, incoming_translation, outgoing_translation,
+    packets_translation, transport_protocol_translation,
 };
 use crate::translations::translations_2::{
     administrative_entity_translation, connection_details_translation, destination_translation,
     fqdn_translation, mac_address_translation, socket_address_translation, source_translation,
     transmitted_data_translation,
 };
-use crate::utils::countries::{get_computer_tooltip, get_flag_tooltip, FLAGS_WIDTH_BIG};
-use crate::utils::formatted_strings::{get_formatted_bytes_string, get_socket_address};
+use crate::utils::formatted_strings::{get_formatted_bytes_string_with_b, get_socket_address};
 use crate::{Language, Sniffer, StyleType};
 
 pub fn connection_details_page(sniffer: &Sniffer, connection_index: usize) -> Container<Message> {
@@ -76,7 +77,7 @@ fn page_content(sniffer: &Sniffer, connection_index: usize) -> Container<'static
     if let Some((r_dns, host)) = host_option {
         let host_info = host_info_option.unwrap_or_default();
         let flag = get_flag_tooltip(
-            &host.country,
+            host.country,
             FLAGS_WIDTH_BIG,
             host_info.is_local,
             host_info.traffic_type,
@@ -252,15 +253,14 @@ fn page_content(sniffer: &Sniffer, connection_index: usize) -> Container<'static
         )
         .push(
             Text::new(format!(
-                "{} ({}):\n   {} {}\n   {} {}",
+                "{} ({}):\n   {}\n   {} {}",
                 transmitted_data_translation(sniffer.language),
                 if val.traffic_direction.eq(&TrafficDirection::Outgoing) {
                     outgoing_translation(sniffer.language).to_lowercase()
                 } else {
                     incoming_translation(sniffer.language).to_lowercase()
                 },
-                get_formatted_bytes_string(val.transmitted_bytes).trim(),
-                bytes_translation(sniffer.language),
+                get_formatted_bytes_string_with_b(val.transmitted_bytes),
                 val.transmitted_packets,
                 packets_translation(sniffer.language),
             ))

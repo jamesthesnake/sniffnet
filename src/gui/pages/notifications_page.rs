@@ -6,6 +6,8 @@ use iced_lazy::lazy;
 use iced_native::widget::tooltip::Position;
 use iced_native::widget::{button, vertical_space};
 
+use crate::countries::country_utils::get_flag_tooltip;
+use crate::countries::flags_pictures::FLAGS_WIDTH_BIG;
 use crate::gui::components::header::get_button_settings;
 use crate::gui::components::tab::get_pages_tabs;
 use crate::gui::components::types::my_modal::MyModal;
@@ -24,8 +26,7 @@ use crate::translations::translations::{
     packets_exceeded_translation, packets_exceeded_value_translation, per_second_translation,
     threshold_translation,
 };
-use crate::utils::countries::{get_flag_tooltip, FLAGS_WIDTH_BIG};
-use crate::utils::formatted_strings::get_formatted_bytes_string;
+use crate::utils::formatted_strings::get_formatted_bytes_string_with_b;
 use crate::{Language, RunningPage, Sniffer, StyleType};
 
 /// Computes the body of gui notifications page
@@ -240,25 +241,21 @@ fn bytes_notification_log(
     let font = get_font(style);
     let mut threshold_str = threshold_translation(language);
     threshold_str.push_str(": ");
-    threshold_str.push_str(
-        &(logged_notification.threshold / logged_notification.byte_multiple.get_multiplier())
-            .to_string(),
-    );
-    let char_multiple = logged_notification.byte_multiple.get_char();
-    if !char_multiple.is_empty() {
-        threshold_str.push_str(&format!(" {char_multiple}",));
-    }
+    threshold_str.push_str(&get_formatted_bytes_string_with_b(
+        (logged_notification.threshold).into(),
+    ));
+
     threshold_str.push_str(&format!(" {}", per_second_translation(language)));
     let mut incoming_str = " - ".to_string();
     incoming_str.push_str(incoming_translation(language));
     incoming_str.push_str(": ");
-    incoming_str.push_str(&get_formatted_bytes_string(u128::from(
+    incoming_str.push_str(&get_formatted_bytes_string_with_b(u128::from(
         logged_notification.incoming,
     )));
     let mut outgoing_str = " - ".to_string();
     outgoing_str.push_str(outgoing_translation(language));
     outgoing_str.push_str(": ");
-    outgoing_str.push_str(&get_formatted_bytes_string(u128::from(
+    outgoing_str.push_str(&get_formatted_bytes_string_with_b(u128::from(
         logged_notification.outgoing,
     )));
     let content = Row::new()
@@ -295,7 +292,7 @@ fn bytes_notification_log(
                 .push(
                     Text::new(bytes_exceeded_value_translation(
                         language,
-                        &get_formatted_bytes_string(u128::from(
+                        &get_formatted_bytes_string_with_b(u128::from(
                             logged_notification.incoming + logged_notification.outgoing,
                         )),
                     ))
@@ -332,7 +329,7 @@ fn favorite_notification_log(
         .align_items(Alignment::Center)
         .spacing(5)
         .push(get_flag_tooltip(
-            &country,
+            country,
             FLAGS_WIDTH_BIG,
             logged_notification.data_info_host.is_local,
             logged_notification.data_info_host.traffic_type,
