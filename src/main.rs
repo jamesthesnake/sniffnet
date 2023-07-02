@@ -10,6 +10,7 @@ use iced::{window, Application, Settings};
 
 use chart::types::chart_type::ChartType;
 use chart::types::traffic_chart::TrafficChart;
+use cli::parse_cli_args;
 use configs::types::config_device::ConfigDevice;
 use configs::types::config_settings::ConfigSettings;
 use gui::pages::types::running_page::RunningPage;
@@ -32,6 +33,7 @@ use utils::formatted_strings::print_cli_welcome_message;
 use crate::secondary_threads::check_updates::set_newer_release_status;
 
 mod chart;
+mod cli;
 mod configs;
 mod countries;
 mod gui;
@@ -46,6 +48,8 @@ mod utils;
 ///
 /// It initializes shared variables and loads configuration parameters
 pub fn main() -> iced::Result {
+    parse_cli_args();
+
     let current_capture_id1 = Arc::new(Mutex::new(0));
     let current_capture_id2 = current_capture_id1.clone();
 
@@ -66,19 +70,20 @@ pub fn main() -> iced::Result {
         process::exit(1);
     }));
 
-    let config_settings_result = confy::load::<ConfigSettings>("sniffnet", "settings");
-    if config_settings_result.is_err() {
-        // it happens when changing the ConfigSettings struct fields during development or after new releases
+    let config_settings = if let Ok(setting) = confy::load::<ConfigSettings>("sniffnet", "settings")
+    {
+        setting
+    } else {
         confy::store("sniffnet", "settings", ConfigSettings::default()).unwrap_or(());
-    }
-    let config_settings = config_settings_result.unwrap_or(ConfigSettings::default());
+        ConfigSettings::default()
+    };
 
-    let config_device_result = confy::load::<ConfigDevice>("sniffnet", "device");
-    if config_device_result.is_err() {
-        // it happens when changing the ConfigDevice struct fields during development or after new releases
+    let config_device = if let Ok(device) = confy::load::<ConfigDevice>("sniffnet", "device") {
+        device
+    } else {
         confy::store("sniffnet", "device", ConfigDevice::default()).unwrap_or(());
-    }
-    let config_device = config_device_result.unwrap_or(ConfigDevice::default());
+        ConfigDevice::default()
+    };
 
     thread::Builder::new()
         .name("thread_check_updates".to_string())
